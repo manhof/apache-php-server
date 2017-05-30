@@ -1,6 +1,8 @@
 #!/bin/bash
 #https Cert Install
-serverbuild= gawk -F= '/^ID=/{print $2}' /etc/os-release
+gawk -F= '/^ID=/{print $2}' /etc/os-release > /home/id.txt
+serverbuild=$(cat /home/id.txt)
+echo " This is the Server Build: " $serverbuild >> /home/test
 pub=$1
 hostname=$2
 new_cert=$3
