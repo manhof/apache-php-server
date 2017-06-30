@@ -27,73 +27,72 @@ dphram= /etc/ssl/certs/dhparam.pem
 
 if [[ $serverbuild == *"ubuntu"* ]]
  then
- 	 ssl_conf= /etc/apache2/conf-available/ssl-params.conf
-	 ssl_dflt= /etc/apache2/sites-available/default-ssl.conf
-	 site_dfl= /etc/apache2/sites-available/000-default.conf
+  ssl_conf= /etc/apache2/conf-available/ssl-params.conf
+  ssl_dflt= /etc/apache2/sites-available/default-ssl.conf
+  site_dfl= /etc/apache2/sites-available/000-default.conf
 elif [[ $serverbuild == *"centos"* ]]
  then
-	mkdir /etc/ssl/private
+  mkdir /etc/ssl/private
 else
-    echo "Cannot determine Build Type... Exiting" >> /home/test
-	exit 3
+ echo "Cannot determine Build Type... Exiting" >> /home/test
+ exit 3
 fi	  
-	
 if [[$new_cert == 1 ]]
  then
-	echo " Creating a new Cert Request" >> /home/test
-	echo "[ req ]" >> /home/san.cnf
-	echo "default_bits			= 2048" >> /home/san.cnf
-	echo "distinguish_name		= req_distinguished_name" >> /home/san.cnf
-	echo "req_extensions		= req_ext" >> /home/san.cnf
-	echo "[ req_distinguished_name ]" >> /home/san.cnf
-	echo "countryName			= $Country" >> /home/san.cnf
-	echo "stateOrProvinceName	= $State" >> /home/san.cnf
-	echo "localityName			= $City" >> /home/san.cnf
-	echo "organizationName		= $Org $OrgU" >> /home/san.cnf
-	echo "commonName			= $CN" >> /home/san.cnf
-	echo "[ req_ext ]" >> /home/san.cnf
-	echo "subjectAltName = @alt_names" >> /home/san.cnf
-	echo "[alt_names]" >> /home/san.cnf
-	echo "DNS.1					= $alt_name" >> /home/san.cnf
-	if [[ $self_signed == 1 ]]
-	 then
-		echo "Generating Self Signed Certificate" >> /home/test
-		keyout= $self_key_out
-		crtout= $self_crt_out
-		openssl req -x509 -nodes -newkey rsa:2048 -keyout $keyout -out $crtout -config san.cnf
-	else
-		echo "generating certificate and key request... will need to put crt file in /etc/ssl/certs/ once recieved" >> /home/test
-		echo "will need to update $ssl_conf with file name " >> /home/test
-		keyout= $gen_key_out
-		csrout= $gen_csr_out
-		crtout= ""
-		openssl req -newkey rsa:2048 -nodes -keyout $keyout -out $csrout -config /home/san.cnf
-	fi
+  echo " Creating a new Cert Request" >> /home/test
+  echo "[ req ]" >> /home/san.cnf
+  echo "default_bits			= 2048" >> /home/san.cnf
+  echo "distinguish_name		= req_distinguished_name" >> /home/san.cnf
+  echo "req_extensions		= req_ext" >> /home/san.cnf
+  echo "[ req_distinguished_name ]" >> /home/san.cnf
+  echo "countryName			= $Country" >> /home/san.cnf
+  echo "stateOrProvinceName	= $State" >> /home/san.cnf
+  echo "localityName			= $City" >> /home/san.cnf
+  echo "organizationName		= $Org $OrgU" >> /home/san.cnf
+  echo "commonName			= $CN" >> /home/san.cnf
+  echo "[ req_ext ]" >> /home/san.cnf
+  echo "subjectAltName = @alt_names" >> /home/san.cnf
+  echo "[alt_names]" >> /home/san.cnf
+  echo "DNS.1					= $alt_name" >> /home/san.cnf
+  if [[ $self_signed == 1 ]]
+   then
+    echo "Generating Self Signed Certificate" >> /home/test
+    keyout= $self_key_out
+    crtout= $self_crt_out
+    openssl req -x509 -nodes -newkey rsa:2048 -keyout $keyout -out $crtout -config san.cnf
+  else
+   echo "generating certificate and key request... will need to put crt file in /etc/ssl/certs/ once recieved" >> /home/test
+   echo "will need to update $ssl_conf with file name " >> /home/test
+   keyout= $gen_key_out
+   csrout= $gen_csr_out
+   crtout= ""
+   openssl req -newkey rsa:2048 -nodes -keyout $keyout -out $csrout -config /home/san.cnf
+  fi
 else
-	"Downloading Certs" >> /home/test
-	curl -o $hostname.crt $curturl
-	curl -o $hostname.key $keyurl
-	cp *.key  /etc/ssl/private/
-	cp *.crt /etc/ssl/certs/
+ "Downloading Certs" >> /home/test
+ curl -o $hostname.crt $curturl
+ curl -o $hostname.key $keyurl
+ cp *.key  /etc/ssl/private/
+ cp *.crt /etc/ssl/certs/
 fi
 if [[ $serverbuild == *"centos"* ]]
  then
-	openssl dhparam -out $dphram 2048
-	cat $dphram | tee -a $self_crt_out
-	oldcrt= /etc/pki/tls/certs/localhost.crt
-	oldkey= /etc/pki/tls/private/localhost.key
-	ssl_conf= /etc/httpd/conf.d/ssl.conf
-	echo "<VirtualHost *:80>" >> /etc/httpd/conf.d/non-ssl.conf
-	echo "        Redirect \"/\" \"https://$pub/\"" >> /etc/httpd/conf.d/non-ssl.conf
-	echo "</VirtualHost>"  >> /etc/httpd/conf.d/non-ssl.conf
+  openssl dhparam -out $dphram 2048
+  cat $dphram | tee -a $self_crt_out
+  oldcrt= /etc/pki/tls/certs/localhost.crt
+  oldkey= /etc/pki/tls/private/localhost.key
+  ssl_conf= /etc/httpd/conf.d/ssl.conf
+  echo "<VirtualHost *:80>" >> /etc/httpd/conf.d/non-ssl.conf
+  echo "        Redirect \"/\" \"https://$pub/\"" >> /etc/httpd/conf.d/non-ssl.conf
+  echo "</VirtualHost>"  >> /etc/httpd/conf.d/non-ssl.conf
 elif [[ $serverbuild == *"ubuntu"* ]]
  then
-	oldcrt= /etc/ssl/certs/ssl-cert-snakeoil.pem
-	oldkey= /etc/ssl/private/ssl-cert-snakeoil.key
-	sed -i -e 's+DocumentRoot /var/www/html+DocumentRoot /var/www/html\n\t\tRedirect \"/\" \"https://$pub/\"+g' $site_dfl
+  oldcrt= /etc/ssl/certs/ssl-cert-snakeoil.pem
+  oldkey= /etc/ssl/private/ssl-cert-snakeoil.key
+  sed -i -e 's+DocumentRoot /var/www/html+DocumentRoot /var/www/html\n\t\tRedirect \"/\" \"https://$pub/\"+g' $site_dfl
 else
-    echo "Cannot determine Build Type... Exiting" >> /home/test
-	exit 3
+ echo "Cannot determine Build Type... Exiting" >> /home/test
+ exit 3
 fi	   
 echo "# from https://cipherli.st/" >> $ssl_conf
 echo "SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH" >> $ssl_conf                
@@ -113,23 +112,23 @@ sed -i -e 's+$oldcrt+$crtout+g' $ssl_dflt
 sed -i -e 's+$oldkey+$keyout+g' $ssl_dflt
 if [[ $serverbuild == *"ubuntu"* ]]
  then
-	a2enmod ssl
-	a2enmod headers
-	a2ensite default-ssl
-	a2enconf ssl-params
+  a2enmod ssl
+  a2enmod headers
+  a2ensite default-ssl
+  a2enconf ssl-params
 fi
 apache2ctl configtest >> /home/test
 if [[$new_cert == 1 ]]
  then
-	if [[ $self_signed == 1 ]]
-	then
-		systemctl restart apache2
-		echo "server has been restarted with self signed cert" >> /home/test
-	else
-		exit 0
+  if [[ $self_signed == 1 ]]
+   then
+    systemctl restart apache2
+    echo "server has been restarted with self signed cert" >> /home/test
+  else
+   exit 0
 else
-	systemctl restart apache2
-	echo "server has been updated with public certificate. test to make sure this works"
+ systemctl restart apache2
+ echo "server has been updated with public certificate. test to make sure this works"
 fi
 
 
