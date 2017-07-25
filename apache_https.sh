@@ -17,7 +17,6 @@ OrgU=$11
 CN=$12
 alt_name=$13
 
-
 self_key_out=/etc/ssl/private/apache-selfsigned.key
 self_crt_out=/etc/ssl/certs/apache-selfsigned.crt
 gen_key_out= /etc/ssl/private/$CN.key
@@ -45,11 +44,12 @@ if [[$new_cert == 1 ]]
   echo "distinguish_name		= req_distinguished_name" >> /home/san.cnf
   echo "req_extensions		= req_ext" >> /home/san.cnf
   echo "[ req_distinguished_name ]" >> /home/san.cnf
-  echo "countryName			= $Country" >> /home/san.cnf
-  echo "stateOrProvinceName	= $State" >> /home/san.cnf
-  echo "localityName			= $City" >> /home/san.cnf
-  echo "organizationName		= $Org $OrgU" >> /home/san.cnf
-  echo "commonName			= $CN" >> /home/san.cnf
+  echo "countryName			= Country Name (2 letter code)" >> /home/san.cnf
+  echo "stateOrProvinceName	= State or Province Name (full name)" >> /home/san.cnf
+  echo "localityName			=  Locality Name (eg, city)" >> /home/san.cnf
+  echo "organizationName		= Organization Name (eg, company)" >> /home/san.cnf
+  echo "organizationalUnitName Organizational Unit Name (eg, section)" >>/home/san.cnf
+  echo "commonName			= Common Name (e.g. server FQDN or YOUR name)" >> /home/san.cnf
   echo "[ req_ext ]" >> /home/san.cnf
   echo "subjectAltName = @alt_names" >> /home/san.cnf
   echo "[alt_names]" >> /home/san.cnf
@@ -59,14 +59,14 @@ if [[$new_cert == 1 ]]
     echo "Generating Self Signed Certificate" >> /home/test
     keyout= $self_key_out
     crtout= $self_crt_out
-    openssl req -x509 -nodes -newkey rsa:2048 -keyout $keyout -out $crtout -config san.cnf
+    openssl req -x509 -nodes -newkey rsa:2048 -keyout $keyout -out $crtout -config san.cnf -subj "/C=$Country/ST=$State/L=$City/O=$Org/OU=$OrgU/CN=$CN"
   else
    echo "generating certificate and key request... will need to put crt file in /etc/ssl/certs/ once recieved" >> /home/test
    echo "will need to update $ssl_conf with file name " >> /home/test
    keyout= $gen_key_out
    csrout= $gen_csr_out
    crtout= ""
-   openssl req -newkey rsa:2048 -nodes -keyout $keyout -out $csrout -config /home/san.cnf
+   openssl req -newkey rsa:2048 -nodes -keyout $keyout -out $csrout -config /home/san.cnf -subj "/C=$Country/ST=$State/L=$City/O=$Org/OU=$OrgU/CN=$CN"
   fi
 else
  "Downloading Certs" >> /home/test
