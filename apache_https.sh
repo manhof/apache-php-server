@@ -48,7 +48,7 @@ if [[$new_cert == 1 ]]
   echo "stateOrProvinceName	= State or Province Name (full name)" >> /home/san.cnf
   echo "localityName			=  Locality Name (eg, city)" >> /home/san.cnf
   echo "organizationName		= Organization Name (eg, company)" >> /home/san.cnf
-  echo "organizationalUnitName Organizational Unit Name (eg, section)" >>/home/san.cnf
+  echo "organizationalUnitName = Organizational Unit Name (eg, section)" >>/home/san.cnf
   echo "commonName			= Common Name (e.g. server FQDN or YOUR name)" >> /home/san.cnf
   echo "[ req_ext ]" >> /home/san.cnf
   echo "subjectAltName = @alt_names" >> /home/san.cnf
